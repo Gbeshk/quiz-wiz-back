@@ -13,7 +13,8 @@
         "filament/filament": "^5.7",
         "laravel/framework": "^13.8",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "tijsverkoyen/css-to-inline-styles": "^2.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

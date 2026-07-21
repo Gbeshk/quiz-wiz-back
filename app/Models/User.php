@@ -29,4 +29,9 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'password' => 'hashed',
         ];
     }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new \App\Notifications\CustomVerifyEmail());
+    }
 }
