@@ -5,36 +5,33 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class VerifyEmailController extends Controller
 {
-    public function verify(Request $request, string $id, string $hash)
+    public function verify(Request $request, $id, $hash): JsonResponse
     {
-        if (! $request->hasValidSignature()) {
-            return response()->json(['message' => 'Verification token is invalid or expired.'], 400);
-        }
-
         $user = User::findOrFail($id);
 
-
-        if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
-            return response()->json([
-                'message' => 'Invalid verification link.'
-            ], 403);
+        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return response()->json(['message' => 'Invalid verification link.'], 403);
         }
 
         if ($user->hasVerifiedEmail()) {
             return response()->json([
-                'message' => 'Email is already verified.'
+                'status' => 'already_verified',
+                'message' => 'Email already verified.',
             ]);
         }
 
-        $user->markEmailAsVerified();
-        event(new Verified($user));
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
 
         return response()->json([
-            'message' => 'Email verified successfully.'
+            'status' => 'verified',
+            'message' => 'Email verified successfully.',
         ]);
     }
 }

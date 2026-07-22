@@ -164,13 +164,15 @@
                                                 sans-serif;
                                         "
                                     >
-                                        <p style="
+                                        <p
+                                            style="
                                                 margin: 0 0 24px 0;
                                                 font-size: 16px;
                                                 line-height: 20px;
                                                 color: #000000;
                                                 font-weight: 400;
-                                            ">Hi {{ $user->username ?? 'there' }},</p>
+                                            "
+                                        >Hi {{ $user->username ?? 'there' }},</p>
 
                                         <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 20px; color: #000000; font-weight: 400">We received a request to reset your password. Click the button below to choose a new one.</p>
 
@@ -213,13 +215,15 @@
                                             </tr>
                                         </table>
 
-                                        <p style="
+                                        <p
+                                            style="
                                                 margin: 24px 0 0 0;
                                                 font-size: 14px;
                                                 line-height: 18px;
                                                 color: #666666;
                                                 font-weight: 400;
-                                            ">If you didn't request this, you can safely ignore this email.</p>
+                                            "
+                                        >If you didn't request this, you can safely ignore this email.</p>
                                     </td>
                                 </tr>
                             </table>

@@ -12,18 +12,22 @@ class ForgotPasswordController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
 
         $status = Password::sendResetLink(
             $request->only('email')
         );
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => __($status)]);
+        if ($status !== Password::RESET_LINK_SENT) {
+            throw ValidationException::withMessages([
+                'email' => [__($status)],
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [__($status)],
+        return response()->json([
+            'message' => __($status),
         ]);
     }
 }

@@ -2,25 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Auth\MustVerifyEmail;
-use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
+use App\Notifications\CustomResetPassword;
+use App\Notifications\CustomVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['username', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmailContract
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<UserFactory> */
-    use HasApiTokens;
-    use HasFactory;
-    use MustVerifyEmail;
-    use Notifiable;
+    use HasApiTokens, HasFactory, MustVerifyEmailTrait, Notifiable;
+
+    protected $fillable = [
+        'username',
+        'email',
+        'password',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     protected function casts(): array
     {
@@ -32,10 +36,11 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new \App\Notifications\CustomVerifyEmail());
+        $this->notify(new CustomVerifyEmail());
     }
+
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new \App\Notifications\CustomResetPassword($token));
+        $this->notify(new CustomResetPassword($token));
     }
 }
