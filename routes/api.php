@@ -20,6 +20,7 @@ Route::middleware('throttle:6,1')->group(function () {
     Route::post('/logout', LogoutController::class)->middleware('auth:sanctum');
 
     Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])
+        ->middleware('signed')
         ->name('verification.verify');
     Route::post('/email/resend-verification', ResendVerificationController::class);
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -27,10 +28,30 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->render(function (InvalidSignatureException $e, Request $request) {
-            if ($request->is('api/*')) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            if ($request->routeIs('verification.verify')) {
+                $user = User::find($request->route('id'));
+
+                if ($user && $user->hasVerifiedEmail()) {
+                    return response()->json([
+                        'status' => 'already_verified',
+                        'message' => 'Email already verified.',
+                    ]);
+                }
+
                 return response()->json([
-                    'message' => 'Verification token is invalid or expired.',
+                    'status' => 'expired',
+                    'email' => $user?->email,
+                    'message' => 'Verification link is invalid or has expired.',
                 ], 400);
             }
+
+            return response()->json([
+                'status' => 'invalid_signature',
+                'message' => 'This link is invalid or has expired.',
+            ], 400);
         });
     })->create();

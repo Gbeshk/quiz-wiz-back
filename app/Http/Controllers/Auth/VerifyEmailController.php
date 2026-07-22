@@ -10,12 +10,16 @@ use Illuminate\Http\Request;
 
 class VerifyEmailController extends Controller
 {
-    public function verify(Request $request, $id, $hash): JsonResponse
+    public function verify(Request $request, string $id, string $hash): JsonResponse
     {
         $user = User::findOrFail($id);
 
-        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            return response()->json(['message' => 'Invalid verification link.'], 403);
+        if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            return response()->json([
+                'status' => 'invalid',
+                'email' => $user->email,
+                'message' => 'Invalid verification link.',
+            ], 403);
         }
 
         if ($user->hasVerifiedEmail()) {
@@ -25,9 +29,9 @@ class VerifyEmailController extends Controller
             ]);
         }
 
-        if ($user->markEmailAsVerified()) {
-            event(new Verified($user));
-        }
+        $user->markEmailAsVerified();
+
+        event(new Verified($user));
 
         return response()->json([
             'status' => 'verified',

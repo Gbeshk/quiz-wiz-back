@@ -6,7 +6,6 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 
@@ -16,31 +15,31 @@ class CustomVerifyEmail extends VerifyEmail implements ShouldQueue
 
     protected function verificationUrl($notifiable): string
     {
-        $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+        $hash = sha1($notifiable->getEmailForVerification());
 
-        $verifyUrl = URL::temporarySignedRoute(
+        $backendUrl = URL::temporarySignedRoute(
             'verification.verify',
-            Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
+            now()->addMinutes(Config::get('auth.verification.expire', 60)),
             [
                 'id' => $notifiable->getKey(),
-                'hash' => sha1($notifiable->getEmailForVerification()),
+                'hash' => $hash,
             ]
         );
 
-        $parsedUrl = parse_url($verifyUrl);
-        $queryString = $parsedUrl['query'] ?? '';
+        $frontendUrl = rtrim(config('app.frontend_url', 'http://localhost:5173'), '/');
+        $query = parse_url($backendUrl, PHP_URL_QUERY);
+        $path = "{$frontendUrl}/email/verify/{$notifiable->getKey()}/{$hash}";
 
-        return "{$frontendUrl}/email/verify/{$notifiable->getKey()}/"
-            . sha1($notifiable->getEmailForVerification())
-            . "?{$queryString}&email=" . urlencode($notifiable->getEmailForVerification());
+        return $query ? "{$path}?{$query}" : $path;
     }
 
     public function toMail($notifiable): MailMessage
     {
-        $url = $this->verificationUrl($notifiable);
-
         return (new MailMessage)
             ->subject('Verify Your Email Address')
-            ->view('emails.verify', ['url' => $url, 'user' => $notifiable]);
+            ->view('emails.verify', [
+                'url' => $this->verificationUrl($notifiable),
+                'user' => $notifiable,
+            ]);
     }
 }
