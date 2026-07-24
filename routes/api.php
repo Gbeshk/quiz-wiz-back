@@ -47,6 +47,10 @@ Route::get('/quizzes', [QuizController::class, 'index'])
 Route::get('/quizzes/{quiz}', [QuizController::class, 'show'])
     ->name('quizzes.show');
 
+Route::post('/quizzes/{quiz}/attempt', [QuizController::class, 'submitAttempt'])
+    ->middleware('auth:sanctum')
+    ->name('quizzes.attempt');
+
 Route::get('/categories', [QuizController::class, 'categories'])
     ->name('categories.index');
 

@@ -9,6 +9,8 @@ class QuizResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $myAttempt = $this->attempts?->first();
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -21,6 +23,10 @@ class QuizResource extends JsonResource
             'difficulty' => $this->whenLoaded('difficulty', fn() => $this->difficulty->name),
             'difficultyColor' => $this->whenLoaded('difficulty', fn() => $this->difficulty->color),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'timesPlayed' => $this->attempts_count ?? 0,
+            'isCompleted' => (bool) $myAttempt,
+            'pointsEarned' => $myAttempt?->points_earned ?? 0,
+            'completedDate' => $myAttempt?->created_at,
             'created_at' => $this->created_at,
         ];
     }
