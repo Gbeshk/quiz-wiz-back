@@ -63,6 +63,14 @@ class QuizForm
                             ->required()
                             ->columnSpanFull(),
 
+                        TextInput::make('points')
+                            ->label('Points')
+                            ->numeric()
+                            ->required()
+                            ->default(1)
+                            ->minValue(1)
+                            ->columnSpanFull(),
+
                         Repeater::make('answers')
                             ->relationship()
                             ->schema([

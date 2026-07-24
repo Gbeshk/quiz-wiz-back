@@ -28,7 +28,8 @@ class QuizController extends Controller
 
         $query = Quiz::query()
             ->with(['difficulty', 'categories'])
-            ->withCount('questions');
+            ->withCount('questions')
+            ->withSum('questions', 'points');
 
         if (!empty($validated['category_id'])) {
             $query->whereHas('categories', function ($q) use ($validated) {

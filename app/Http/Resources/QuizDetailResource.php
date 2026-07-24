@@ -16,13 +16,16 @@ class QuizDetailResource extends JsonResource
             'image' => $this->image ? asset('storage/' . $this->image) : null,
             'instruction' => $this->instruction,
             'time' => $this->time,
-            'difficulty' => new DifficultyResource($this->whenLoaded('difficulty')),
+            'difficulty' => $this->whenLoaded('difficulty', fn() => $this->difficulty->name),
+            'difficultyColor' => $this->whenLoaded('difficulty', fn() => $this->difficulty->color),
+            'pointsTotal' => $this->whenLoaded('questions', fn() => $this->questions->sum('points')),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'questions' => $this->whenLoaded('questions', function () {
                 return $this->questions->map(function ($question) {
                     return [
                         'id' => $question->id,
                         'text' => $question->text,
+                        'points' => $question->points,
                         'answers' => $question->answers->map(function ($answer) {
                             return [
                                 'id' => $answer->id,

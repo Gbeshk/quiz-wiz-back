@@ -17,7 +17,9 @@ class QuizResource extends JsonResource
             'instruction' => $this->instruction,
             'time' => $this->time,
             'questions_count' => $this->whenCounted('questions'),
-            'difficulty' => new DifficultyResource($this->whenLoaded('difficulty')),
+            'pointsTotal' => $this->questions_sum_points ?? 0,
+            'difficulty' => $this->whenLoaded('difficulty', fn() => $this->difficulty->name),
+            'difficultyColor' => $this->whenLoaded('difficulty', fn() => $this->difficulty->color),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'created_at' => $this->created_at,
         ];
