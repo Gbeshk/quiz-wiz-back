@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResendVerificationController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\QuizController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,3 +40,15 @@ Route::post('/verify-reset-token', [ResetPasswordController::class, 'verifyToken
 
 Route::post('/reset-password', ResetPasswordController::class)
     ->name('password.reset');
+
+Route::get('/quizzes', [QuizController::class, 'index'])
+    ->name('quizzes.index');
+
+Route::get('/quizzes/{quiz}', [QuizController::class, 'show'])
+    ->name('quizzes.show');
+
+Route::get('/categories', [QuizController::class, 'categories'])
+    ->name('categories.index');
+
+Route::get('/difficulties', [QuizController::class, 'difficulties'])
+    ->name('difficulties.index');
