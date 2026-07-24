@@ -1,22 +1,48 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Filament\Resources\Quizzes;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use App\Filament\Resources\Quizzes\Pages\CreateQuiz;
+use App\Filament\Resources\Quizzes\Pages\EditQuiz;
+use App\Filament\Resources\Quizzes\Pages\ListQuizzes;
+use App\Filament\Resources\Quizzes\Schemas\QuizForm;
+use App\Filament\Resources\Quizzes\Tables\QuizzesTable;
+use App\Models\Quiz;
+use BackedEnum;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
 
-class QuizResource extends JsonResource
+class QuizResource extends Resource
 {
-    public function toArray(Request $request): array
+    protected static ?string $model = Quiz::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    public static function form(Schema $schema): Schema
+    {
+        return QuizForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return QuizzesTable::configure($table);
+    }
+
+    public static function getRelations(): array
     {
         return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'time' => $this->time,
-            'questions_count' => $this->whenCounted('questions'),
-            'difficulty' => new DifficultyResource($this->whenLoaded('difficulty')),
-            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
-            'created_at' => $this->created_at,
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListQuizzes::route('/'),
+            'create' => CreateQuiz::route('/create'),
+            'edit' => EditQuiz::route('/{record}/edit'),
         ];
     }
 }

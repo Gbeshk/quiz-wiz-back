@@ -4,8 +4,10 @@ namespace App\Filament\Resources\Quizzes\Schemas;
 
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -18,6 +20,22 @@ class QuizForm
                 TextInput::make('title')
                     ->required()
                     ->maxLength(255),
+
+                Textarea::make('description')
+                    ->rows(3)
+                    ->columnSpanFull(),
+
+                FileUpload::make('image')
+                    ->image()
+                    ->disk('public')
+                    ->directory('quizzes')
+                    ->imageEditor()
+                    ->columnSpanFull(),
+
+                Textarea::make('instruction')
+                    ->label('Instructions')
+                    ->rows(4)
+                    ->columnSpanFull(),
 
                 Select::make('difficulty_id')
                     ->label('Difficulty')
