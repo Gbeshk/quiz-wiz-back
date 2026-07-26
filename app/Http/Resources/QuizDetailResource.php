@@ -32,10 +32,13 @@ class QuizDetailResource extends JsonResource
             ] : null,
             'questions' => $this->whenLoaded('questions', function () {
                 return $this->questions->map(function ($question) {
+                    $correctCount = $question->answers->where('is_correct', true)->count();
                     return [
                         'id' => $question->id,
                         'text' => $question->text,
                         'points' => $question->points,
+                        'type' => $correctCount > 1 ? 'multiple' : 'single',
+                        'correctAnswersCount' => $correctCount,
                         'answers' => $question->answers->map(function ($answer) {
                             return [
                                 'id' => $answer->id,

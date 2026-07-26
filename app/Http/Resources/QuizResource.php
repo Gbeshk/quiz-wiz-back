@@ -27,6 +27,7 @@ class QuizResource extends JsonResource
             'isCompleted' => (bool) $myAttempt,
             'pointsEarned' => $myAttempt?->points_earned ?? 0,
             'completedDate' => $myAttempt?->created_at,
+            'timeTakenSeconds' => $myAttempt?->time_taken_seconds,
             'created_at' => $this->created_at,
         ];
     }

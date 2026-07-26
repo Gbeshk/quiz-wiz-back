@@ -25,11 +25,17 @@ class QuizController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
+        $userId = $request->user()?->id;
         $query = Quiz::query()
             ->with(['difficulty', 'categories'])
             ->withCount('questions')
             ->withSum('questions', 'points')
-            ->withCount('attempts');
+            ->withCount('attempts')
+            ->with(['attempts' => function ($q) use ($userId) {
+                $userId
+                    ? $q->where('user_id', $userId)
+                    : $q->whereRaw('1 = 0');
+            }]);
 
         if ($request->user()) {
             $query->with(['attempts' => fn($q) => $q->where('user_id', $request->user()->id)]);
@@ -58,41 +64,84 @@ class QuizController extends Controller
 
     public function show(Request $request, Quiz $quiz): QuizDetailResource
     {
-        $quiz->load(['difficulty', 'categories', 'questions.answers'])
-            ->loadCount('attempts');
+        $userId = $request->user()?->id;
 
-        if ($request->user()) {
-            $quiz->load(['attempts' => fn($q) => $q->where('user_id', $request->user()->id)]);
-        }
+        $quiz->load(['difficulty', 'categories', 'questions.answers'])
+            ->loadCount('attempts')
+            ->load(['attempts' => function ($q) use ($userId) {
+                $userId
+                    ? $q->where('user_id', $userId)
+                    : $q->whereRaw('1 = 0');
+            }]);
 
         return new QuizDetailResource($quiz);
     }
-
     public function submitAttempt(Request $request, Quiz $quiz)
     {
         $validated = $request->validate([
-            'points_earned' => ['required', 'integer', 'min:0'],
             'time_taken_seconds' => ['required', 'integer', 'min:0'],
+            'answers' => ['required', 'array'],
+            'answers.*.question_id' => ['required', 'integer', 'exists:questions,id'],
+            'answers.*.answer_ids' => ['array'],
+            'answers.*.answer_ids.*' => ['integer', 'exists:answers,id'],
         ]);
 
-        $existing = QuizAttempt::where('user_id', $request->user()->id)
-            ->where('quiz_id', $quiz->id)
-            ->first();
+        $user = $request->user();
 
-        if ($existing) {
-            return response()->json(['message' => 'Quiz already completed.'], 409);
+        if ($user) {
+            $existing = QuizAttempt::where('user_id', $user->id)
+                ->where('quiz_id', $quiz->id)
+                ->first();
+
+            if ($existing) {
+                return response()->json(['message' => 'Quiz already completed.'], 409);
+            }
         }
 
-        $attempt = QuizAttempt::create([
-            'user_id' => $request->user()->id,
-            'quiz_id' => $quiz->id,
-            'points_earned' => $validated['points_earned'],
-            'time_taken_seconds' => $validated['time_taken_seconds'],
-        ]);
+        $questions = $quiz->questions()->with('answers')->get()->keyBy('id');
 
-        return response()->json($attempt, 201);
+        $pointsEarned = 0;
+        $results = [];
+
+        foreach ($validated['answers'] as $submitted) {
+            $question = $questions->get($submitted['question_id']);
+            if (!$question) continue;
+
+            $correctIds = $question->answers->where('is_correct', true)->pluck('id')->sort()->values();
+            $selectedIds = collect($submitted['answer_ids'] ?? [])->sort()->values();
+
+            $isCorrect = $correctIds->isNotEmpty()
+                && $correctIds->count() === $selectedIds->count()
+                && $correctIds->diff($selectedIds)->isEmpty();
+
+            if ($isCorrect) {
+                $pointsEarned += $question->points;
+            }
+
+            $results[] = [
+                'question_id' => $question->id,
+                'is_correct' => $isCorrect,
+            ];
+        }
+
+        $attempt = null;
+        if ($user) {
+            $attempt = QuizAttempt::create([
+                'user_id' => $user->id,
+                'quiz_id' => $quiz->id,
+                'points_earned' => $pointsEarned,
+                'time_taken_seconds' => $validated['time_taken_seconds'],
+            ]);
+        }
+
+        return response()->json([
+            'pointsEarned' => $pointsEarned,
+            'correctCount' => collect($results)->where('is_correct', true)->count(),
+            'mistakesCount' => collect($results)->where('is_correct', false)->count(),
+            'saved' => (bool) $attempt,
+            'completedAt' => $attempt?->created_at,
+        ], 201);
     }
-
     public function categories(): AnonymousResourceCollection
     {
         return CategoryResource::collection(Category::query()->orderBy('name')->get());
