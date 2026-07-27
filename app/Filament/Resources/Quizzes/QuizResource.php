@@ -19,7 +19,11 @@ class QuizResource extends Resource
     protected static ?string $model = Quiz::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('user_id', auth()->id());
+    }
     public static function form(Schema $schema): Schema
     {
         return QuizForm::configure($schema);
