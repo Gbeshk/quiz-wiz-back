@@ -23,6 +23,7 @@ class QuizController extends Controller
             'difficulty_id' => ['nullable', 'integer', 'exists:difficulties,id'],
             'search' => ['nullable', 'string', 'max:255'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'sort' => ['nullable', 'string', 'in:latest,popular'],
         ]);
 
         $userId = $request->user()?->id;
@@ -36,10 +37,6 @@ class QuizController extends Controller
                     ? $q->where('user_id', $userId)
                     : $q->whereRaw('1 = 0');
             }]);
-
-        if ($request->user()) {
-            $query->with(['attempts' => fn($q) => $q->where('user_id', $request->user()->id)]);
-        }
 
         if (!empty($validated['category_id'])) {
             $query->whereHas('categories', function ($q) use ($validated) {
@@ -55,13 +52,17 @@ class QuizController extends Controller
             $query->where('title', 'like', '%' . $validated['search'] . '%');
         }
 
+        if (($validated['sort'] ?? null) === 'popular') {
+            $query->orderByDesc('attempts_count');
+        } else {
+            $query->latest();
+        }
         $perPage = $validated['per_page'] ?? 15;
 
-        $quizzes = $query->latest()->paginate($perPage);
+        $quizzes = $query->paginate($perPage);
 
         return QuizResource::collection($quizzes);
     }
-
     public function show(Request $request, Quiz $quiz): QuizDetailResource
     {
         $userId = $request->user()?->id;
