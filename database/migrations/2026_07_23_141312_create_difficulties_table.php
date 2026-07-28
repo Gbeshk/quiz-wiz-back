@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('difficulties', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('color')->default('#000000');
+            $table->string('color')->nullable();
             $table->timestamps();
         });
     }
