@@ -41,16 +41,15 @@ Route::post('/verify-reset-token', [ResetPasswordController::class, 'verifyToken
 Route::post('/reset-password', ResetPasswordController::class)
     ->name('password.reset');
 
-Route::get('/quizzes', [QuizController::class, 'index'])
-    ->name('quizzes.index');
+Route::controller(QuizController::class)->group(function () {
+    Route::prefix('quizzes')
+        ->name('quizzes.')
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{quiz}', 'show')->name('show');
+            Route::post('/{quiz}/attempt', 'submitAttempt')->name('attempt');
+        });
 
-Route::get('/quizzes/{quiz}', [QuizController::class, 'show'])
-    ->name('quizzes.show');
-
-Route::post('/quizzes/{quiz}/attempt', [QuizController::class, 'submitAttempt'])
-    ->name('quizzes.attempt');
-Route::get('/categories', [QuizController::class, 'categories'])
-    ->name('categories.index');
-
-Route::get('/difficulties', [QuizController::class, 'difficulties'])
-    ->name('difficulties.index');
+    Route::get('/categories', 'categories')->name('categories.index');
+    Route::get('/difficulties', 'difficulties')->name('difficulties.index');
+});
