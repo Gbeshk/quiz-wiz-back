@@ -9,7 +9,7 @@ class QuizDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $myAttempt = $this->attempts?->first();
+        $myAttempt = $this->myAttempt;
 
         return [
             'id' => $this->id,
