@@ -29,24 +29,7 @@ class QuizDetailResource extends JsonResource
                 'timeTakenSeconds' => $myAttempt->time_taken_seconds,
                 'completedAt' => $myAttempt->created_at,
             ] : null,
-            'questions' => $this->whenLoaded('questions', function () {
-                return $this->questions->map(function ($question) {
-                    $correctCount = $question->answers->where('is_correct', true)->count();
-                    return [
-                        'id' => $question->id,
-                        'text' => $question->text,
-                        'points' => $question->points,
-                        'type' => $correctCount > 1 ? 'multiple' : 'single',
-                        'correctAnswersCount' => $correctCount,
-                        'answers' => $question->answers->map(function ($answer) {
-                            return [
-                                'id' => $answer->id,
-                                'text' => $answer->text,
-                            ];
-                        }),
-                    ];
-                });
-            }),
+            'questions' => QuestionResource::collection($this->whenLoaded('questions')),
             'created_at' => $this->created_at,
         ];
     }
