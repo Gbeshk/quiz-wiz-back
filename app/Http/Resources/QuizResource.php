@@ -20,7 +20,7 @@ class QuizResource extends JsonResource
             'time' => $this->time,
             'questions_count' => $this->whenCounted('questions'),
             'pointsTotal' => $this->questions_sum_points ?? 0,
-            'difficulty' => new DifficultyResource($this->whenLoaded('difficulty')),
+            'difficulty' => DifficultyResource::make($this->whenLoaded('difficulty')),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'timesPlayed' => $this->attempts_count ?? 0,
             'isCompleted' => (bool) $myAttempt,
