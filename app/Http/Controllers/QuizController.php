@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\Quiz\GradeQuizAttemptAction;
 use App\Http\Requests\QuizIndexRequest;
+use App\Http\Requests\SubmitQuizAttemptRequest;
 use App\Http\Resources\QuizDetailResource;
 use App\Http\Resources\QuizResource;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class QuizController extends Controller
@@ -34,18 +34,12 @@ class QuizController extends Controller
         $quiz->load(['difficulty', 'categories', 'questions.answers', 'myAttempt'])
             ->loadCount('attempts');
 
-        return new QuizDetailResource($quiz);
+        return QuizDetailResource::make($quiz);
     }
 
-    public function submitAttempt(Request $request, Quiz $quiz, GradeQuizAttemptAction $gradeQuizAttempt)
+    public function submitAttempt(SubmitQuizAttemptRequest $request, Quiz $quiz, GradeQuizAttemptAction $gradeQuizAttempt)
     {
-        $validated = $request->validate([
-            'time_taken_seconds' => ['required', 'integer', 'min:0'],
-            'answers' => ['required', 'array'],
-            'answers.*.question_id' => ['required', 'integer', 'exists:questions,id'],
-            'answers.*.answer_ids' => ['array'],
-            'answers.*.answer_ids.*' => ['integer', 'exists:answers,id'],
-        ]);
+        $validated = $request->validated();
 
         $user = $request->user();
 
