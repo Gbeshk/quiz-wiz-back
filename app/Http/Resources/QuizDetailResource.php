@@ -18,7 +18,7 @@ class QuizDetailResource extends JsonResource
             'image' => $this->image ? asset('storage/' . $this->image) : null,
             'instruction' => $this->instruction,
             'time' => $this->time,
-            'difficulty' => new DifficultyResource($this->whenLoaded('difficulty')),
+            'difficulty' => DifficultyResource::make($this->whenLoaded('difficulty')),
             'pointsTotal' => $this->whenLoaded('questions', fn() => $this->questions->sum('points')),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'timesPlayed' => $this->attempts_count ?? 0,
