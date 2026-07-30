@@ -15,7 +15,8 @@ class DifficultyForm
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                ColorPicker::make('color'),
+                ColorPicker::make('color')
+                    ->required(),
             ]);
     }
 }
