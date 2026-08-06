@@ -55,7 +55,10 @@ class Quiz extends Model
             })
             ->when($filters['search'] ?? null, function (Builder $q, $search) {
                 $q->where('title', 'like', "%{$search}%");
-            });
+            }) 
+            ->when($filters['my_quizzes'] ?? null, function (Builder $q) {
+            $q->where('user_id', auth()->id());
+        });
     }
 
     public function scopeSort(Builder $query, ?string $sort): Builder

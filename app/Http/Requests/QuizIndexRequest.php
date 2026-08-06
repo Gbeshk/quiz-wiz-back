@@ -19,6 +19,7 @@ class QuizIndexRequest extends FormRequest
             'search' => ['nullable', 'string', 'max:255'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:latest,popular'],
+            'my_quizzes' => ['nullable', 'boolean'],
         ];
     }
 }
