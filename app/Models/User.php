@@ -2,20 +2,24 @@
 
 namespace App\Models;
 
-use Database\Factories\UserFactory;
 use App\Notifications\CustomResetPassword;
 use App\Notifications\CustomVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasName;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Filament\Models\Contracts\HasName;
 
-class User extends Authenticatable implements MustVerifyEmail, HasName
+class User extends Authenticatable implements MustVerifyEmail, HasName, FilamentUser
 {
-    use HasApiTokens, HasFactory, Notifiable, \Illuminate\Auth\MustVerifyEmail;
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
+    use \Illuminate\Auth\MustVerifyEmail;
 
     protected $fillable = [
         'username',
@@ -54,5 +58,10 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
     public function getFilamentName(): string
     {
         return $this->username;
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true;
     }
 }
