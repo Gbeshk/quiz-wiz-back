@@ -1,58 +1,133 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Quiz Wiz — Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+Quiz Wiz is a quiz platform where users can register with email verification, reset their password, and browse, sort, and filter quizzes to attempt. Verified users can also create their own quizzes through the built-in admin panel.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This repository is the **backend/API**, built with Laravel. The frontend (React) lives in a separate repository — see [Resources](#resources) for the link.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+#
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Table of Contents
 
-## Learning Laravel
+- [Prerequisites](#prerequisites)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Resources](#resources)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+#
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prerequisites
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **PHP** `^8.3`
+- **Composer** `^2`
+- **Node.js & npm** (for building admin panel / Blade assets)
+- **SQLite** (default local database — no separate DB server install required)
 
-## Agentic Development
+#
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Tech Stack
 
-```bash
-composer require laravel/boost --dev
+- [Laravel 13](https://laravel.com/docs/13.x) — back-end framework
+- **SQLite** — database
+- [Laravel Sanctum](https://laravel.com/docs/13.x/sanctum) — API authentication
+- [Filament](https://filamentphp.com/) — admin panel (used for quiz creation by verified users)
+- [PHP-CS-Fixer](https://redberry.gitbook.io/resources/php-is-linteri) — linter & formatter
+- [Vite](https://vitejs.dev/) + [TailwindCSS](https://tailwindcss.com/) — asset bundling & styling for the admin panel / Blade views
 
-php artisan boost:install
+#
+
+### Getting Started
+
+1\. Clone the repository:
+
+```sh
+git clone https://github.com/RedberryInternship/giorgi-beshkenadze-quiz-wiz-back.git
+cd giorgi-beshkenadze-quiz-wiz-back
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+2\. Run the setup script, which installs PHP & JS dependencies, creates your `.env` file, generates the app key, runs migrations, and builds assets — all in one step:
 
-## Contributing
+```sh
+composer run setup
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+This is equivalent to running manually:
 
-## Code of Conduct
+```sh
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --force
+npm install --ignore-scripts
+npm run build
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3\. Configure mail settings in your `.env` file. Email verification and password reset rely on outgoing mail — for local development, `MAIL_MAILER=log` is enough to see emails written to `storage/logs/laravel.log` instead of actually sending them:
 
-## Security Vulnerabilities
+```env
+MAIL_MAILER=log
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+4\. Start the app:
 
-## License
+```sh
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+##### Now, you should be good to go!
+
+#
+
+### Development
+
+To run everything you need locally at once (server, queue worker, logs, and Vite), use:
+
+```sh
+composer run dev
+```
+
+This runs concurrently:
+
+- `php artisan serve` — the app server
+- `php artisan queue:listen` — processes queued jobs (**required for sending emails**, e.g. verification & password reset)
+- `php artisan pail` — live log tailing
+- `npm run dev` — Vite dev server for admin panel / Blade assets
+
+Before committing, format your code with:
+
+```sh
+composer format
+```
+
+#
+
+### Deployment
+
+The API is deployed on a VPS behind **Nginx** and **PHP-FPM**, with SSL provided by **Let's Encrypt**.
+
+- **Production API:** [https://quiz-wiz-api.giorgi-beshkenadze.redberryinternship.ge](https://quiz-wiz-api.giorgi-beshkenadze.redberryinternship.ge)
+- **Admin panel (Filament):** [https://quiz-wiz-api.giorgi-beshkenadze.redberryinternship.ge/admin](https://quiz-wiz-api.giorgi-beshkenadze.redberryinternship.ge/admin)
+
+Deployment steps, run manually on the server after pulling the latest code:
+
+```sh
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan optimize
+```
+
+- The queue worker (`php artisan queue:work`) runs persistently via **Supervisor**, so queued jobs (such as verification and password-reset emails) keep processing in the background.
+- Cross-domain, cookie-based Sanctum authentication is configured via `SANCTUM_STATEFUL_DOMAINS` and `SESSION_DOMAIN`, since the frontend and backend are hosted on separate subdomains.
+- There is currently no CI/CD pipeline — deploys are manual. This section will be updated if that changes.
+
+#
+
+### Resources
+
+- **Frontend repository:** [quiz-wiz-front](https://github.com/RedberryInternship/giorgi-beshkenadze-quiz-wiz-front)
+- **Figma design:** [QuizWiz](https://www.figma.com/design/QTWoxa2OYVayZ04WJ0ZZ9k/QuizWiz?node-id=1057-78034&p=f&t=ZJN3ulmEvhMyNMyY-0)
+- **Database diagram:** [DrawSQL — Quiz Wiz schema](https://drawsql.app/teams/giorgi-6/diagrams/quiz-wiz)
